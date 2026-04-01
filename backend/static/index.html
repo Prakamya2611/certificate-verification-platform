@@ -115,7 +115,7 @@ function verifyCertificate() {
 
     resultDiv.innerHTML = "<span class='loading'>🔄 Verifying certificate...</span>";
 
-    fetch("http://127.0.0.1:8000/certificates/verify/" + hash)
+    fetch("https://certificate-verification-platform.onrender.com/certificates/verify/" + hash)
         .then(response => response.json())
         .then(data => {
             if (data.status === "VALID") {
@@ -137,7 +137,7 @@ function verifyCertificate() {
         })
         .catch(() => {
             resultDiv.innerHTML =
-                "<span class='invalid'>Backend not running</span>";
+                "<span class='invalid'>Server error / Try again</span>";
         });
 }
 </script>
