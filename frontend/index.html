@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Verification Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            background: white;
+            width: 420px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .invalid {
+            color: red;
+        }
+
+        .details {
+            margin-top: 15px;
+            text-align: left;
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .loading {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Certificate Verification</h2>
+    <p class="subtitle">Verify the authenticity of your certificate</p>
+
+    <input
+        type="text"
+        id="certHash"
+        placeholder="Paste Certificate ID here"
+    />
+
+    <button onclick="verifyCertificate()">Verify Certificate</button>
+
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+function verifyCertificate() {
+    const hash = document.getElementById("certHash").value;
+    const resultDiv = document.getElementById("result");
+
+    if (!hash) {
+        resultDiv.innerHTML = "<span class='invalid'>Please enter a Certificate ID</span>";
+        return;
+    }
+
+    resultDiv.innerHTML = "<span class='loading'>🔄 Verifying certificate...</span>";
+
+    fetch("http://127.0.0.1:8000/certificates/verify/" + hash)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "VALID") {
+                const c = data.certificate;
+                resultDiv.innerHTML = `
+                    <div class="valid">
+                        <h3>✅ VALID CERTIFICATE</h3>
+                        <div class="details">
+                            <p><b>Student:</b> ${c.student_name}</p>
+                            <p><b>Course:</b> ${c.course_name}</p>
+                            <p><b>Issuer:</b> ${c.issuer}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML =
+                    "<h3 class='invalid'>❌ NOT A VALID CERTIFICATE</h3>";
+            }
+        })
+        .catch(() => {
+            resultDiv.innerHTML =
+                "<span class='invalid'>Backend not running</span>";
+        });
+}
+</script>
+
+</body>
+</html>
