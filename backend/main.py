@@ -1,20 +1,23 @@
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import hashlib
 
 app = FastAPI()
 
-# ---------------- CORS FIX ----------------
+# ---------------- CORS ----------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # allow frontend
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------- STATIC FILES ----------------
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ---------------- STORAGE ----------------
 issued_certificates = {}
@@ -24,7 +27,7 @@ class Certificate(BaseModel):
     course_name: str
     issuer: str
 
-# ---------------- ISSUE ----------------
+# ---------------- ISSUE CERTIFICATE ----------------
 @app.post("/certificates/issue")
 def issue_certificate(data: Certificate):
     raw = f"{data.student_name}{data.course_name}{data.issuer}"
@@ -41,7 +44,7 @@ def issue_certificate(data: Certificate):
         "certificate_hash": cert_hash
     }
 
-# ---------------- VERIFY ----------------
+# ---------------- VERIFY CERTIFICATE ----------------
 @app.get("/certificates/verify/{cert_hash}")
 def verify_certificate(cert_hash: str):
     if cert_hash in issued_certificates:
@@ -54,6 +57,7 @@ def verify_certificate(cert_hash: str):
             "status": "NOT VALID"
         }
 
+# ---------------- SERVE FRONTEND ----------------
 @app.get("/")
-def root():
-    return {"message": "Certificate Platform Running"}
+def serve_frontend():
+    return FileResponse("static/index.html")
